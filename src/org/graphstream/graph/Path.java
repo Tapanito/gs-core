@@ -252,6 +252,7 @@ public class Path implements Route {
 	 * @param edge
 	 * 		The edge to add to the path.
 	 */
+	@Override
 	public void add(Edge edge) {
 		if (nodePath.isEmpty()) {
 			add(null, edge);
