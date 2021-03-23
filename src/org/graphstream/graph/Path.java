@@ -1,9 +1,9 @@
 /*
  * This file is part of GraphStream <http://graphstream-project.org>.
- * 
+ *
  * GraphStream is a library whose purpose is to handle static or dynamic
  * graph, create them from scratch, file or any source and display them.
- * 
+ *
  * This program is free software distributed under the terms of two licenses, the
  * CeCILL-C license that fits European law, and the GNU Lesser General Public
  * License. You can  use, modify and/ or redistribute the software under the terms
@@ -11,26 +11,25 @@
  * URL <http://www.cecill.info> or under the terms of the GNU LGPL as published by
  * the Free Software Foundation, either version 3 of the License, or (at your
  * option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
  * PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C and LGPL licenses and that you accept their terms.
  */
 
 /**
- * @since 2009-02-19
- * 
  * @author Guilhelm Savin <guilhelm.savin@graphstream-project.org>
  * @author Yoann Pigné <yoann.pigne@graphstream-project.org>
  * @author Antoine Dutot <antoine.dutot@graphstream-project.org>
  * @author Alex Bowen <bowen.a@gmail.com>
  * @author Hicham Brahimi <hicham.brahimi@graphstream-project.org>
+ * @since 2009-02-19
  */
 package org.graphstream.graph;
 
@@ -42,7 +41,7 @@ import java.util.stream.Stream;
 
 /**
  * Path description.
- * 
+ *
  * <p>
  * A path is a class that stores ordered lists of nodes and links that are
  * adjacent. Such a path may be manipulated with nodes and/or edges added or
@@ -50,30 +49,31 @@ import java.util.stream.Stream;
  * during the construction of the path. Only edges need to be added, the nodes
  * list is maintained automatically.
  * </p>
- * 
+ *
  * <p>
  * The two lists (one for nodes, one for edges) may be acceded at any moment in
  * constant time.
  * </p>
- * 
+ *
  * <p>
  * The constraint of this class is that it needs to know the first node of the
  * path (the root). This root can be set with the {@link #setRoot(Node)} method
  * or by using the {@link #add(Node, Edge)} method.
  * </p>
- * 
+ *
  * <p>
  * The normal use with this class is to first use the {@link #setRoot(Node)}
  * method to initialize the path; then to use the {@link #add(Edge)} method to
  * grow it and the {@link #popEdge()} or {@link #popNode()}.
- * 
  */
-public class Path implements Structure {
+public class Path implements Route {
 
 	/**
 	 * class level logger
 	 */
 	private static final Logger logger = Logger.getLogger(Path.class.getSimpleName());
+
+	public static final RouteFactory<Path> pathFactory = Path::new;
 
 	// ------------- ATTRIBUTES ------------
 
@@ -98,61 +98,68 @@ public class Path implements Structure {
 	 * New empty path.
 	 */
 	public Path() {
-		edgePath = new Stack<Edge>();
-		nodePath = new Stack<Node>();
+		edgePath = new Stack<>();
+		nodePath = new Stack<>();
 	}
+
+	// -------------- ACCESSORS --------------
 
 	/**
 	 * Get the root (the first node) of the path.
-	 * 
+	 *
 	 * @return the root of the path.
 	 */
+	@Override
 	public Node getRoot() {
 		return this.root;
 	}
 
 	/**
 	 * Set the root (first node) of the path.
-	 * 
+	 *
 	 * @param root
-	 *            The root of the path.
+	 * 		The root of the path.
 	 */
+	@Override
 	public void setRoot(Node root) {
-		if (this.root == null) {
-			this.root = root;
-			nodePath.push(root);
-		} else {
-			logger.warning("Root node is not null - first use the clear method.");
+		if (this.root != null) {
+			throw new IllegalStateException("Root not already set - path must be cleared");
 		}
+
+		this.root = root;
+		nodePath.push(root);
 	}
 
 	/**
 	 * Says whether the path contains this node or not.
-	 * 
+	 *
 	 * @param node
-	 *            The node tested for existence in the path.
+	 * 		The node tested for existence in the path.
 	 * @return <code>true</code> if the path contains the node.
 	 */
+	@Override
 	public boolean contains(Node node) {
 		return nodePath.contains(node);
 	}
 
 	/**
 	 * Says whether the path contains this edge or not.
-	 * 
+	 *
 	 * @param edge
-	 *            The edge tested for existence in the path.
+	 * 		The edge tested for existence in the path.
 	 * @return <code>true</code> if the path contains the edge.
 	 */
+	@Override
 	public boolean contains(Edge edge) {
 		return edgePath.contains(edge);
 	}
 
 	/**
 	 * Returns true if the path is empty.
-	 * 
+	 *
 	 * @return <code>true</code> if the path is empty.
 	 */
+	@Override
 	public boolean empty() {
 		return nodePath.empty();
 	}
@@ -160,6 +167,7 @@ public class Path implements Structure {
 	/**
 	 * Returns the size of the path
 	 */
+	@Override
 	public int size() {
 		return nodePath.size();
 	}
@@ -167,9 +175,9 @@ public class Path implements Structure {
 	/**
 	 * It returns the sum of the <code>characteristic</code> given value in the
 	 * Edges of the path.
-	 * 
+	 *
 	 * @param characteristic
-	 *            The characteristic.
+	 * 		The characteristic.
 	 * @return Sum of the characteristics.
 	 */
 	public Double getPathWeight(String characteristic) {
@@ -182,22 +190,25 @@ public class Path implements Structure {
 
 	/**
 	 * Returns the list of edges representing the path.
-	 * 
+	 *
 	 * @return The list of edges representing the path.
 	 */
+	@Override
 	public List<Edge> getEdgePath() {
 		return edgePath;
 	}
 
 	/**
 	 * Construct an return a list of nodes that represents the path.
-	 * 
+	 *
 	 * @return A list of nodes representing the path.
 	 */
+	@Override
 	public List<Node> getNodePath() {
 		return nodePath;
 	}
 
+	// -------------- MODIFIERS -------------
 
 	/**
 	 * Adds a node and an edge to the path. If root is not set, the node will be
@@ -209,6 +220,7 @@ public class Path implements Structure {
 	 * @param edge
 	 * 		The edge used.
 	 */
+	@Override
 	public void add(Node from, Edge edge) {
 		if (root == null) {
 			if (from == null) {
@@ -265,7 +277,7 @@ public class Path implements Structure {
 	/**
 	 * This methods pops the 2 stacks (<code>edgePath</code> and
 	 * <code>nodePath</code>) and returns the removed edge.
-	 * 
+	 *
 	 * @return The edge that have just been removed.
 	 */
 	public Edge popEdge() {
@@ -276,7 +288,7 @@ public class Path implements Structure {
 	/**
 	 * This methods pops the 2 stacks (<code>edgePath</code> and
 	 * <code>nodePath</code>) and returns the removed node.
-	 * 
+	 *
 	 * @return The node that have just been removed.
 	 */
 	public Node popNode() {
@@ -286,7 +298,7 @@ public class Path implements Structure {
 
 	/**
 	 * Looks at the node at the top of the stack without removing it from the stack.
-	 * 
+	 *
 	 * @return The node at the top of the stack.
 	 */
 	public Node peekNode() {
@@ -295,7 +307,7 @@ public class Path implements Structure {
 
 	/**
 	 * Looks at the edge at the top of the stack without removing it from the stack.
-	 * 
+	 *
 	 * @return The edge at the top of the stack.
 	 */
 
@@ -309,13 +321,12 @@ public class Path implements Structure {
 	public void clear() {
 		nodePath.clear();
 		edgePath.clear();
-		// Runtime.getRuntime().gc();
 		root = null;
 	}
 
 	/**
 	 * Get a copy of this path
-	 * 
+	 *
 	 * @return A copy of this path.
 	 */
 	@SuppressWarnings("unchecked")
@@ -326,6 +337,15 @@ public class Path implements Structure {
 		newPath.nodePath = (Stack<Node>) nodePath.clone();
 
 		return newPath;
+	}
+
+	@Override
+	public Path copy() {
+		Path clone = new Path();
+		clone.setRoot(root);
+		this.edges().forEach(clone::add);
+
+		return clone;
 	}
 
 	/**
@@ -357,29 +377,32 @@ public class Path implements Structure {
 	/**
 	 * Compare the content of the current path and the specified path to decide
 	 * weather they are equal or not.
-	 * 
-	 * @param p
-	 *            A path to compare to the curent one.
+	 *
+	 * @param other
+	 * 		A path to compare to the curent one.
 	 * @return True if both paths are equal.
 	 */
-	public boolean equals(Path p) {
-		if (nodePath.size() != p.nodePath.size()) {
+
+	@Override
+	public boolean equals(Object other) {
+		if (!(other instanceof Route)) {
 			return false;
-		} else {
-			for (int i = 0; i < nodePath.size(); i++) {
-				if (nodePath.get(i) != p.nodePath.get(i)) {
-					return false;
-				}
-			}
 		}
-		return true;
+		Route otherRoute = (Route) other;
+		if (size() != otherRoute.size()) {
+			return false;
+		}
+
+		return getNodePath().equals(otherRoute.getNodePath()) &&
+				getEdgePath().equals(((Route) other).getEdgePath());
 	}
+
 
 	// ------------ UTILITY METHODS ------------
 
 	/**
 	 * Returns a String description of the path.
-	 * 
+	 *
 	 * @return A String representation of the path.
 	 */
 	@Override
@@ -389,7 +412,7 @@ public class Path implements Structure {
 
 	/**
 	 * Returns the size of the path. Identical to {@link #size()}.
-	 * 
+	 *
 	 * @return The size of the path.
 	 */
 	@Override
@@ -399,7 +422,7 @@ public class Path implements Structure {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.graphstream.graph.Structure#getEdgeCount()
 	 */
 	@Override
@@ -439,7 +462,7 @@ public class Path implements Structure {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.graphstream.graph.Structure#getEdgeSet()
 	 */
 	@SuppressWarnings("unchecked")

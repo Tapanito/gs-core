@@ -36,6 +36,8 @@ import org.graphstream.graph.Edge;
 import org.graphstream.graph.Node;
 import org.graphstream.stream.SourceBase.ElementType;
 
+import java.util.Objects;
+
 /**
  * <p>
  * This class provides a basic implementation of {@code Edge} interface, to
@@ -141,10 +143,12 @@ public class AbstractEdge extends AbstractElement implements Edge {
 		return target;
 	}
 
+	@Override
 	public boolean isDirected() {
 		return directed;
 	}
 
+	@Override
 	public boolean isLoop() {
 		return source == target;
 	}

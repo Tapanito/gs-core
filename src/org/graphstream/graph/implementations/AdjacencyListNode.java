@@ -55,7 +55,7 @@ public class AdjacencyListNode extends AbstractNode {
 		String p = "org.graphstream.graph.node.initialEdgeCapacity";
 		int initialEdgeCapacity = 16;
 		try {
-			initialEdgeCapacity = Integer.valueOf(System.getProperty(p, "16"));
+			initialEdgeCapacity = Integer.parseInt(System.getProperty(p, "16"));
 		} catch (AccessControlException e) {
 		}
 		INITIAL_EDGE_CAPACITY = initialEdgeCapacity;
@@ -161,7 +161,7 @@ public class AdjacencyListNode extends AbstractNode {
 			i = ioStart;
 		else if (type == O_EDGE)
 			i = oStart;
-		while (edges[i] != edge)
+		while (!edge.equals(edges[i]))
 			i++;
 
 		removeEdge(i);
@@ -256,10 +256,12 @@ public class AdjacencyListNode extends AbstractNode {
 				iNext = ioStart;
 		}
 
+		@Override
 		public boolean hasNext() {
 			return iNext < iEnd;
 		}
 
+		@Override
 		@SuppressWarnings("unchecked")
 		public T next() {
 			if (iNext >= iEnd)
@@ -268,6 +270,7 @@ public class AdjacencyListNode extends AbstractNode {
 			return (T) edges[iPrev];
 		}
 
+		@Override
 		public void remove() {
 			if (iPrev == -1)
 				throw new IllegalStateException();
